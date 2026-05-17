@@ -12,11 +12,11 @@ export function AuthProvider({ children }) {
     baseURL: process.env.REACT_APP_API_URL || "http://localhost:8000",
   });
 
-  const logout = useCallback(() => {
+  const logout = () => {
     localStorage.removeItem("token");
     setUser(null);
     setLoading(false);
-  }, []);
+  };
 
   const fetchUser = useCallback(async () => {
     const token = localStorage.getItem("token");
@@ -30,7 +30,7 @@ export function AuthProvider({ children }) {
       }
     }
     setLoading(false);
-  }, [authAxios, logout]);
+  }, [authAxios]);
 
   useEffect(() => {
     fetchUser();
