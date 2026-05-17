@@ -1,66 +1,54 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
-import axios from "axios";
+import React, { createContext, useContext, useState, useEffect, useMemo } from "react";
 import { authApi } from "../services/api";
+import API from "../services/api";
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
+  const [token, setToken] = useState(localStorage.getItem("token"));
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const authAxios = axios.create({
-    baseURL: process.env.REACT_APP_API_URL || "http://localhost:8000",
-  });
-
-  const logout = () => {
-    localStorage.removeItem("token");
-    setUser(null);
-    setLoading(false);
-  };
-
-  const fetchUser = useCallback(async () => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      try {
-        authAxios.defaults.headers.Authorization = `Bearer ${token}`;
-        const res = await authAxios.get("/api/auth/me");
-        setUser(res.data);
-      } catch (error) {
-        logout();
-      }
-    }
-    setLoading(false);
-  }, [authAxios]);
-
   useEffect(() => {
-    fetchUser();
-  }, [fetchUser]);
-
-  authAxios.interceptors.response.use(
-    (r) => r,
-    (err) => {
-      if (err.response?.status === 401) {
-        logout();
+    const fetchUser = async () => {
+      if (token) {
+        localStorage.setItem("token", token);
+        API.defaults.headers.Authorization = `Bearer ${token}`;
+        try {
+          const res = await authApi.me();
+          setUser(res.data);
+        } catch (error) {
+          setToken(null); // Token is invalid
+        }
+      } else {
+        localStorage.removeItem("token");
+        delete API.defaults.headers.Authorization;
+        setUser(null);
       }
-      return Promise.reject(err);
-    }
-  );
+      setLoading(false);
+    };
+    fetchUser();
+  }, [token]);
 
   const login = async (email, password) => {
     const res = await authApi.login({ email, password });
-    localStorage.setItem("token", res.data.access_token);
-    await fetchUser();
+    setToken(res.data.access_token);
+  };
+
+  const logout = () => {
+    setToken(null);
   };
 
   const register = async (email, username, password) => {
     await authApi.register({ email, username, password });
   };
 
-  return (
-    <AuthContext.Provider value={{ user, loading, login, logout, register, authAxios }}>
-      {children}
-    </AuthContext.Provider>
+  const value = useMemo(
+    () => ({ token, user, loading, login, logout, register }),
+    [token, user, loading]
   );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export const useAuth = () => useContext(AuthContext);

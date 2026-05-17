@@ -11,10 +11,14 @@ import JobDetail from "./pages/JobDetail";
 import Layout from "./components/Layout";
 
 function ProtectedRoute({ children }) {
-  const { user, loading } = useAuth();
-  const token = localStorage.getItem("token");
+  const { user } = useAuth();
+  return user ? children : <Navigate to="/login" />;
+}
 
-  if (loading && token) {
+function App() {
+  const { loading } = useAuth();
+
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
@@ -22,29 +26,33 @@ function ProtectedRoute({ children }) {
     );
   }
 
-  return user ? children : <Navigate to="/login" />;
-}
-
-function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <Toaster position="top-right" toastOptions={{
-          style: { background: "#1e2130", color: "#e2e8f0", border: "1px solid #374151" }
-        }} />
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-            <Route index element={<Dashboard />} />
-            <Route path="scrape" element={<NewScrape />} />
-            <Route path="history" element={<History />} />
-            <Route path="jobs/:id" element={<JobDetail />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
-    </AuthProvider>
+    <>
+      <Toaster position="top-right" toastOptions={{
+        style: { background: "#ffffff", color: "#1e293b" }
+      }} />
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+          <Route index element={<Dashboard />} />
+          <Route path="scrape" element={<NewScrape />} />
+          <Route path="history" element={<History />} />
+          <Route path="jobs/:id" element={<JobDetail />} />
+        </Route>
+      </Routes>
+    </>
   );
 }
 
-export default App;
+function Root() {
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <App />
+      </AuthProvider>
+    </BrowserRouter>
+  );
+}
+
+export default Root;
