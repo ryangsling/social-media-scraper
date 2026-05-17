@@ -47,7 +47,7 @@ function ResultCard({ result }) {
         )}
       </div>
       {displayContent && (
-        <p className="text-sm text-gray-600 leading-relaxed line-clamp-4 mb-4">
+        <p className="text-sm text-gray-600 leading-relaxed mb-4">
           {displayContent}
         </p>
       )}

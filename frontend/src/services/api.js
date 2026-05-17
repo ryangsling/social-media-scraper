@@ -8,17 +8,6 @@ API.interceptors.request.use((config) => {
   return config;
 });
 
-API.interceptors.response.use(
-  (r) => r,
-  (err) => {
-    if (err.response?.status === 401) {
-      localStorage.removeItem("token");
-      window.location.href = "/login";
-    }
-    return Promise.reject(err);
-  }
-);
-
 export const authApi = {
   login: (data) => API.post("/api/auth/login", data),
   register: (data) => API.post("/api/auth/register", data),
