@@ -13,6 +13,9 @@ RUN curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Add the local bin to the PATH to find the 'flower' executable
+ENV PATH="/root/.local/bin:${PATH}"
+
 COPY . .
 
 EXPOSE 8000
